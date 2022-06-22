@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: heapdump
+  name: dump
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: heapdump
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: your-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heapdump
+  template:
+    metadata:
+      labels:
+        app: heapdump
+    spec:
+      containers:
+      - name: spring
+        image: sagar27/spring:latest  
+        ports:
+        - containerPort: 8080
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "kill -3 1"
+                - "sleep 1m"
+      terminationGracePeriodSeconds: 60
